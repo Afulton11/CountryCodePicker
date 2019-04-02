@@ -5,71 +5,58 @@ import 'package:flutter/material.dart';
 class SelectionDialog extends StatefulWidget {
   final List<CountryCode> elements;
   final bool showCountryOnly;
-  final WidgetBuilder emptySearchBuilder;
 
   /// elements passed as favorite
   final List<CountryCode> favoriteElements;
 
-  SelectionDialog(this.elements, this.favoriteElements, {
-    Key key,
-    this.showCountryOnly,
-    this.emptySearchBuilder,
-  }) : super(key: key);
+  SelectionDialog(this.elements, this.favoriteElements, {this.showCountryOnly});
 
   @override
-  State<StatefulWidget> createState() => _SelectionDialogState();
+  State<StatefulWidget> createState() => new _SelectionDialogState();
 }
 
 class _SelectionDialogState extends State<SelectionDialog> {
   /// this is useful for filtering purpose
-  List<CountryCode> filteredElements;
+  List<CountryCode> showedElements = [];
 
   @override
-  Widget build(BuildContext context) => SimpleDialog(
-      title: Column(
+  Widget build(BuildContext context) => new SimpleDialog(
+      title: new Column(
         children: <Widget>[
-          TextField(
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
+          new TextField(
+            decoration: new InputDecoration(prefixIcon: new Icon(Icons.search)),
             onChanged: _filterElements,
           ),
         ],
       ),
       children: [
-        Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: ListView(
-            children: [
-              widget.favoriteElements.isEmpty
-                  ? const DecoratedBox(decoration: BoxDecoration())
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[]
-                        ..addAll(widget.favoriteElements
-                            .map(
-                              (f) => SimpleDialogOption(
-                                    child: _buildOption(f),
-                                    onPressed: () {
-                                      _selectItem(f);
-                                    },
-                                  ),
-                            )
-                            .toList())
-                        ..add(const Divider())),
-            ]..addAll(filteredElements.isEmpty
-                ? [_buildEmptySearchWidget(context)]
-                : filteredElements.map(
-                    (e) => SimpleDialogOption(
-                      key: Key(e.toLongString()),
-                      child: _buildOption(e),
-                      onPressed: () {
-                        _selectItem(e);
-                      },
-                    )))
-            )
-          ),
-        ],
-      );
+        widget.favoriteElements.isEmpty
+            ? new Container()
+            : new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[]
+                  ..addAll(widget.favoriteElements
+                      .map(
+                        (f) => new SimpleDialogOption(
+                              child: _buildOption(f),
+                              onPressed: () {
+                                _selectItem(f);
+                              },
+                            ),
+                      )
+                      .toList())
+                  ..add(new Divider())),
+      ]..addAll(showedElements
+          .map(
+            (e) => new SimpleDialogOption(
+                  key: Key(e.toLongString()),
+                  child: _buildOption(e),
+                  onPressed: () {
+                    _selectItem(e);
+                  },
+                ),
+          )
+          .toList()));
 
   Widget _buildOption(CountryCode e) {
     return Container(
@@ -101,24 +88,16 @@ class _SelectionDialogState extends State<SelectionDialog> {
     );
   }
 
-  Widget _buildEmptySearchWidget(BuildContext context) {
-    if (widget.emptySearchBuilder != null) {
-      return widget.emptySearchBuilder(context);
-    }
-
-    return Center(child: Text('No Country Found'));
-  }
-
   @override
   void initState() {
-    filteredElements = widget.elements;
+    showedElements = widget.elements;
     super.initState();
   }
 
   void _filterElements(String s) {
     s = s.toUpperCase();
     setState(() {
-      filteredElements = widget.elements
+      showedElements = widget.elements
           .where((e) =>
               e.code.contains(s) ||
               e.dialCode.contains(s) ||
